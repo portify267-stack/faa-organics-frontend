@@ -1,0 +1,26 @@
+/* Import the original Faa Organics stylesheet preserving 100% of the design */
+@import '../css/style.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Seamless connection between Hero and Products after removing Our Philosophy */
+.hero-section {
+  padding-bottom: 40px;
+}
+
+.products-section {
+  padding-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding-bottom: 24px;
+  }
+  .products-section {
+    padding-top: 24px;
+  }
+}
+
+
