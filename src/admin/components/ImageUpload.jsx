@@ -102,7 +102,7 @@ export default function ImageUpload({
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/assets/images/img1.jpeg';
+                e.target.src = '/uploads/img1.jpeg';
               }}
             />
           </div>

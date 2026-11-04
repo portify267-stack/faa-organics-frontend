@@ -45,7 +45,7 @@ export default function ProductCard({ product }) {
         .map(s => s.trim())
         .filter(Boolean);
 
-  const displayImage = product.image || product.images?.[0]?.url || '/assets/images/img11.jpeg';
+  const displayImage = product.image || product.images?.[0]?.url || '/uploads/img11.jpeg';
   const displayWeight = product.weight || product.unit || '100 g';
 
   return (
@@ -58,7 +58,11 @@ export default function ProductCard({ product }) {
           loading="lazy"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = '/assets/images/img1.jpeg';
+            if (displayImage.startsWith('/uploads/')) {
+              e.target.src = `/assets/images/${displayImage.replace('/uploads/', '')}`;
+            } else {
+              e.target.src = '/uploads/img1.jpeg';
+            }
           }}
         />
         <span className="product-weight-badge">{displayWeight}</span>

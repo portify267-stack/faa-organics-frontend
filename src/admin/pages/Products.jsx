@@ -38,7 +38,7 @@ export default function Products() {
         p.images.length > 0 &&
         (p.images.find((img) => img.isPrimary)?.url || p.images[0]?.url)) ||
       (typeof p.image === 'string' && p.image ? p.image : '') ||
-      '/assets/images/img11.jpeg';
+      '/uploads/img11.jpeg';
 
     const categoryId =
       typeof p.category === 'object' && p.category?._id
@@ -540,7 +540,7 @@ export default function Products() {
                           className="w-12 h-12 rounded-xl object-cover border border-stone-200 bg-stone-50 flex-shrink-0 shadow-xs"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = '/assets/images/img1.jpeg';
+                            e.target.src = '/uploads/img1.jpeg';
                           }}
                         />
                       </td>
@@ -641,7 +641,7 @@ export default function Products() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = '/assets/images/img1.jpeg';
+                      e.target.src = '/uploads/img1.jpeg';
                     }}
                   />
                   <div className="absolute top-3 right-3">

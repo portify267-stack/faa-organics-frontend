@@ -35,7 +35,7 @@ export default function Products() {
         p.images.length > 0 &&
         (p.images.find((img) => img.isPrimary)?.url || p.images[0]?.url)) ||
       (typeof p.image === 'string' && p.image ? p.image : '') ||
-      '/assets/images/img11.jpeg';
+      '/uploads/img11.jpeg';
 
     const catSlug = typeof p.category === 'object' && p.category?.slug ? p.category.slug : '';
     const catId = typeof p.category === 'object' && p.category?._id ? p.category._id : p.category || '';

@@ -108,7 +108,15 @@ export default function CartDrawer() {
               return (
                 <article key={item.id} className="cart-item" data-item-id={item.id}>
                   <div className="cart-item-img-wrap">
-                    <img src={item.image} alt={item.name} className="cart-item-img" />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="cart-item-img"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/uploads/img11.jpeg';
+                      }}
+                    />
                   </div>
                   <div className="cart-item-details">
                     <h4 className="cart-item-name">{item.name}</h4>

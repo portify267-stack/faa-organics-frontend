@@ -326,12 +326,12 @@ export default function Categories() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#FAF6F0] border border-stone-200 flex-shrink-0">
                     <img
-                      src={cat.image || '/assets/images/img11.jpeg'}
+                      src={cat.image || '/uploads/img11.jpeg'}
                       alt={cat.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = '/assets/images/img1.jpeg';
+                        e.target.src = '/uploads/img1.jpeg';
                       }}
                     />
                   </div>

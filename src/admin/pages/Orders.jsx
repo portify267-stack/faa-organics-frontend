@@ -46,7 +46,7 @@ export default function Orders() {
       price: item.price,
       quantity: item.quantity,
       weight: item.product?.unit || '1 unit',
-      image: item.product?.images?.[0]?.url || '/assets/images/img11.jpeg',
+      image: item.product?.images?.[0]?.url || item.image || '/uploads/img11.jpeg',
     })),
   });
 
