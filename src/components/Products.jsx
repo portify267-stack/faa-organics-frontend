@@ -2,9 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { products as localProducts, CATEGORIES as localCategories } from '../data/products';
 import { productService, categoryService } from '../services/api';
 import ProductCard from './ProductCard';
+import ProductDetailModal from './ProductDetailModal';
 
 export default function Products() {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Sort helper: Display all Soap category products first before products from other categories
   const sortSoapProductsFirst = (items) => {
@@ -86,6 +88,10 @@ export default function Products() {
       categoryId: catId,
       categoryName: catName,
       image: primaryUrl,
+      images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [{ url: primaryUrl, alt: p.name, isPrimary: true }],
+      discountPrice: p.discountPrice,
+      stockQuantity: p.stockQuantity,
+      availabilityStatus: p.availabilityStatus || (p.stockQuantity === 0 ? 'out_of_stock' : 'in_stock'),
       subtitle: p.subtitle || '',
       keyIngredients: Array.isArray(p.keyIngredients)
         ? p.keyIngredients
@@ -285,11 +291,22 @@ export default function Products() {
         ) : (
           <div className="products-grid" id="products-list-container">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id || product._id} product={product} />
+              <ProductCard
+                key={product.id || product._id}
+                product={product}
+                onSelectProduct={(prod) => setSelectedProduct(prod)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Luxury Botanical Product Detail Popup Modal */}
+      <ProductDetailModal
+        isOpen={Boolean(selectedProduct)}
+        onClose={() => setSelectedProduct(null)}
+        product={selectedProduct}
+      />
     </section>
   );
 }

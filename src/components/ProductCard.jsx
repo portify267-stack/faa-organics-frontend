@@ -1,26 +1,42 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onSelectProduct }) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
 
-  const handleDecrease = () => {
-    if (quantity > 1) setQuantity(prev => prev - 1);
+  const handleDecrease = (e) => {
+    e.stopPropagation();
+    if (quantity > 1) setQuantity((prev) => prev - 1);
   };
 
-  const handleIncrease = () => {
-    if (quantity < 10) setQuantity(prev => prev + 1);
+  const handleIncrease = (e) => {
+    e.stopPropagation();
+    if (quantity < 10) setQuantity((prev) => prev + 1);
   };
 
-  const handleAddToCart = () => {
-    addToCart(product.id, quantity, product);
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    addToCart(product.id || product._id, quantity, product);
     setIsAdded(true);
     setQuantity(1);
     setTimeout(() => {
       setIsAdded(false);
     }, 1500);
+  };
+
+  const handleCardClick = (e) => {
+    if (
+      e.target.closest('.quantity-stepper') ||
+      e.target.closest('.product-add-btn') ||
+      e.target.closest('button')
+    ) {
+      return;
+    }
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    }
   };
 
   // Safe list parsing for bullet points and modal accordions
@@ -49,12 +65,17 @@ export default function ProductCard({ product }) {
   const displayWeight = product.weight || product.unit || '100 g';
 
   return (
-    <article className="product-card" data-id={product.id} data-category={product.category}>
-      <div className="product-image-container">
+    <article
+      className="product-card group/card transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+      data-id={product.id}
+      data-category={product.category}
+      onClick={handleCardClick}
+    >
+      <div className="product-image-container relative overflow-hidden group/img cursor-pointer">
         <img
           src={displayImage}
           alt={product.name}
-          className="product-img"
+          className="product-img transition-transform duration-500 group-hover/img:scale-105"
           loading="lazy"
           onError={(e) => {
             e.target.onerror = null;
@@ -66,9 +87,25 @@ export default function ProductCard({ product }) {
           }}
         />
         <span className="product-weight-badge">{displayWeight}</span>
+
+        {/* Quick View Hover Cue */}
+        <div className="absolute inset-0 bg-stone-900/15 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+          <span className="bg-white/95 text-stone-800 text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-md border border-stone-200 flex items-center gap-1.5 transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
+            <span>View Details</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </span>
+        </div>
       </div>
       <div className="product-info-wrap">
-        <h3 className="product-title">{product.name}</h3>
+        <h3
+          className="product-title cursor-pointer hover:text-[#3a4d39] transition-colors"
+          onClick={() => onSelectProduct && onSelectProduct(product)}
+        >
+          {product.name}
+        </h3>
         {product.subtitle && (
           <p className="text-xs text-stone-500 italic mb-2">{product.subtitle}</p>
         )}
