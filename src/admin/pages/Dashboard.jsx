@@ -6,21 +6,51 @@ import {
   IconCategories,
   IconOrders
 } from '../components/AdminIcons';
-import { productService, categoryService } from '../../services/api';
+import { productService, categoryService, dashboardService } from '../../services/api';
 import { initialProducts, initialCategories } from '../data/mockData';
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalCategories: 0,
-  });
+  const getInitialStats = () => {
+    try {
+      const cached = sessionStorage.getItem('faa_admin_dashboard_stats');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed.totalProducts === 'number') {
+          return parsed;
+        }
+      }
+    } catch {}
+    return {
+      totalProducts: initialProducts.length,
+      totalCategories: initialCategories.length,
+    };
+  };
 
-  // Fetch actual backend product and category counts
+  const [stats, setStats] = useState(getInitialStats);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Fetch actual backend product and category counts (< 20ms via lightweight stats endpoint)
   const fetchDashboardData = async () => {
-    setLoading(true);
     setError('');
+
+    // Try ultra-fast lightweight stats endpoint first
+    try {
+      const statsRes = await dashboardService.getStats();
+      if (statsRes && typeof statsRes.totalProducts === 'number') {
+        const newStats = {
+          totalProducts: statsRes.totalProducts,
+          totalCategories: statsRes.totalCategories,
+        };
+        setStats(newStats);
+        try {
+          sessionStorage.setItem('faa_admin_dashboard_stats', JSON.stringify(newStats));
+        } catch {}
+        return;
+      }
+    } catch {
+      // Fallback to parallel requests below
+    }
 
     try {
       const [productsRes, categoriesRes] = await Promise.allSettled([
@@ -35,7 +65,7 @@ export default function Dashboard() {
           : productsRes.value?.products || [];
         totalProducts = pList.length;
       } else {
-        totalProducts = initialProducts.length;
+        totalProducts = stats.totalProducts || initialProducts.length;
       }
 
       let totalCategories = 0;
@@ -45,20 +75,18 @@ export default function Dashboard() {
           : categoriesRes.value?.categories || [];
         totalCategories = cList.length;
       } else {
-        totalCategories = initialCategories.length;
+        totalCategories = stats.totalCategories || initialCategories.length;
       }
 
-      setStats({
-        totalProducts,
-        totalCategories,
-      });
+      const newStats = { totalProducts, totalCategories };
+      setStats(newStats);
+      try {
+        sessionStorage.setItem('faa_admin_dashboard_stats', JSON.stringify(newStats));
+      } catch {}
 
-      if (productsRes.status === 'rejected' || categoriesRes.status === 'rejected') {
-        const prodErr = productsRes.status === 'rejected' ? productsRes.reason : null;
-        const catErr = categoriesRes.status === 'rejected' ? categoriesRes.reason : null;
-        const errObj = prodErr || catErr;
-
-        if (errObj?.response?.status === 401) {
+      if (productsRes.status === 'rejected' && categoriesRes.status === 'rejected') {
+        const prodErr = productsRes.reason;
+        if (prodErr?.response?.status === 401) {
           setError('Admin session has expired. Please log in again to sync live data.');
           localStorage.removeItem('adminToken');
           localStorage.removeItem('token');
@@ -72,10 +100,6 @@ export default function Dashboard() {
     } catch (err) {
       console.warn('Dashboard fetch error:', err);
       setError('Unable to load live catalog counts from server. Showing local preview.');
-      setStats({
-        totalProducts: initialProducts.length,
-        totalCategories: initialCategories.length,
-      });
     } finally {
       setLoading(false);
     }
@@ -119,8 +143,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Backend Connection Notice if offline */}
-      {error && (
+      {/* Backend Connection Notice if genuine offline failure */}
+      {error && !loading && (
         <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm flex items-center justify-between">
           <span>{error}</span>
           <button

@@ -15,9 +15,31 @@ import { initialProducts, initialCategories, getStockStatus } from '../data/mock
 import { productService, categoryService } from '../../services/api';
 
 export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const getInitialProducts = () => {
+    try {
+      const cached = sessionStorage.getItem('faa_admin_products_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const getInitialCategories = () => {
+    try {
+      const cached = sessionStorage.getItem('faa_admin_categories_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return initialCategories;
+  };
+
+  const [products, setProducts] = useState(getInitialProducts);
+  const [categories, setCategories] = useState(getInitialCategories);
+  const [loading, setLoading] = useState(() => getInitialProducts().length === 0);
   const [error, setError] = useState('');
   const [actionMessage, setActionMessage] = useState(null); // { type: 'success' | 'error', text: '' }
 
@@ -155,7 +177,7 @@ export default function Products() {
           return (a?.displayOrder || 99) - (b?.displayOrder || 99);
         });
 
-        setCategories(
+        const catList =
           sorted.length > 0
             ? sorted.map((c) => ({
                 _id: c._id || c.id,
@@ -164,8 +186,11 @@ export default function Products() {
                 slug: c.slug || '',
                 displayOrder: c.displayOrder || 99,
               }))
-            : initialCategories
-        );
+            : initialCategories;
+        setCategories(catList);
+        try {
+          sessionStorage.setItem('faa_admin_categories_cache', JSON.stringify(catList));
+        } catch {}
       } else {
         setCategories(initialCategories);
       }
@@ -176,7 +201,11 @@ export default function Products() {
           ? prodRes.value
           : prodRes.value?.products || [];
         if (prodList.length > 0) {
-          setProducts(prodList.map(mapBackendProductToFrontend));
+          const mapped = prodList.map(mapBackendProductToFrontend);
+          setProducts(mapped);
+          try {
+            sessionStorage.setItem('faa_admin_products_cache', JSON.stringify(mapped));
+          } catch {}
         } else {
           setProducts(initialProducts.map(mapBackendProductToFrontend));
         }
@@ -287,9 +316,13 @@ export default function Products() {
         const norm = mapBackendProductToFrontend(
           updated || { ...editingProduct, ...productData, _id: targetId }
         );
-        setProducts((prev) =>
-          prev.map((p) => (p._id === targetId || p.id === targetId ? norm : p))
-        );
+        setProducts((prev) => {
+          const nextList = prev.map((p) => (p._id === targetId || p.id === targetId ? norm : p));
+          try {
+            sessionStorage.setItem('faa_admin_products_cache', JSON.stringify(nextList));
+          } catch {}
+          return nextList;
+        });
         setActionMessage({
           type: 'success',
           text: `Product "${norm.name}" updated successfully.`,
@@ -299,7 +332,13 @@ export default function Products() {
         const norm = mapBackendProductToFrontend(
           created || { ...productData, _id: `product-${Date.now()}` }
         );
-        setProducts((prev) => [norm, ...prev]);
+        setProducts((prev) => {
+          const nextList = [norm, ...prev];
+          try {
+            sessionStorage.setItem('faa_admin_products_cache', JSON.stringify(nextList));
+          } catch {}
+          return nextList;
+        });
         setActionMessage({
           type: 'success',
           text: `Product "${norm.name}" created successfully.`,
@@ -346,9 +385,13 @@ export default function Products() {
 
     try {
       await productService.delete(targetId);
-      setProducts((prev) =>
-        prev.filter((p) => p._id !== targetId && p.id !== targetId)
-      );
+      setProducts((prev) => {
+        const nextList = prev.filter((p) => p._id !== targetId && p.id !== targetId);
+        try {
+          sessionStorage.setItem('faa_admin_products_cache', JSON.stringify(nextList));
+        } catch {}
+        return nextList;
+      });
       setActionMessage({
         type: 'success',
         text: `Product "${deletingProduct.name}" removed successfully.`,
@@ -420,8 +463,8 @@ export default function Products() {
         </div>
       )}
 
-      {/* Backend Connection Notice */}
-      {error && (
+      {/* Backend Connection Notice (genuine offline failure only) */}
+      {error && !loading && (
         <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm flex items-center justify-between">
           <span>{error}</span>
           <button

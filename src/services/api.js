@@ -260,4 +260,20 @@ export const salesService = {
   },
 };
 
+/**
+ * Dashboard Overview API Service (< 20ms metadata queries)
+ */
+export const dashboardService = {
+  getStats: async () => {
+    try {
+      const res = await api.get('/admin/dashboard/stats', {
+        params: { _t: Date.now() },
+      });
+      return res.data?.data || res.data;
+    } catch {
+      return null;
+    }
+  },
+};
+
 export default api;

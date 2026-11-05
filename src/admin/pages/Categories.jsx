@@ -13,8 +13,19 @@ import { initialCategories } from '../data/mockData';
 import { categoryService } from '../../services/api';
 
 export default function Categories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const getInitialCategories = () => {
+    try {
+      const cached = sessionStorage.getItem('faa_admin_categories_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const [categories, setCategories] = useState(getInitialCategories);
+  const [loading, setLoading] = useState(() => getInitialCategories().length === 0);
   const [error, setError] = useState('');
   const [actionMessage, setActionMessage] = useState(null); // { type: 'success' | 'error', text: '' }
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,7 +85,11 @@ export default function Categories() {
           const n = (c?.name || '').toLowerCase();
           return !n.includes('lip care') && !n.includes('hair care');
         });
-        setCategories(sortCategories(filtered.map(normalizeCategory)));
+        const sorted = sortCategories(filtered.map(normalizeCategory));
+        setCategories(sorted);
+        try {
+          sessionStorage.setItem('faa_admin_categories_cache', JSON.stringify(sorted));
+        } catch {}
       } else {
         // Fallback to mock categories if backend returns empty collection
         setCategories(sortCategories(initialCategories.map(normalizeCategory)));
@@ -141,9 +156,13 @@ export default function Categories() {
         const targetId = editingCategory._id || editingCategory.id;
         const updated = await categoryService.update(targetId, payload);
         const norm = normalizeCategory(updated || { ...editingCategory, ...catData });
-        setCategories((prev) =>
-          prev.map((c) => (c._id === targetId || c.id === targetId ? norm : c))
-        );
+        setCategories((prev) => {
+          const nextList = prev.map((c) => (c._id === targetId || c.id === targetId ? norm : c));
+          try {
+            sessionStorage.setItem('faa_admin_categories_cache', JSON.stringify(nextList));
+          } catch {}
+          return nextList;
+        });
         setActionMessage({
           type: 'success',
           text: `Category "${norm.name}" updated successfully.`,
@@ -151,7 +170,13 @@ export default function Categories() {
       } else {
         const created = await categoryService.create(payload);
         const norm = normalizeCategory(created || { ...catData, _id: `cat-${Date.now()}` });
-        setCategories((prev) => [norm, ...prev]);
+        setCategories((prev) => {
+          const nextList = [norm, ...prev];
+          try {
+            sessionStorage.setItem('faa_admin_categories_cache', JSON.stringify(nextList));
+          } catch {}
+          return nextList;
+        });
         setActionMessage({
           type: 'success',
           text: `Category "${norm.name}" created successfully.`,
@@ -195,7 +220,13 @@ export default function Categories() {
 
     try {
       await categoryService.delete(targetId);
-      setCategories((prev) => prev.filter((c) => c._id !== targetId && c.id !== targetId));
+      setCategories((prev) => {
+        const nextList = prev.filter((c) => c._id !== targetId && c.id !== targetId);
+        try {
+          sessionStorage.setItem('faa_admin_categories_cache', JSON.stringify(nextList));
+        } catch {}
+        return nextList;
+      });
       setActionMessage({
         type: 'success',
         text: `Category "${deletingCategory.name}" deleted successfully.`,
@@ -268,8 +299,8 @@ export default function Categories() {
         </div>
       )}
 
-      {/* Error / Connection Notice */}
-      {error && (
+      {/* Error / Connection Notice (genuine offline failure only) */}
+      {error && !loading && (
         <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm flex items-center justify-between">
           <span>{error}</span>
           <button

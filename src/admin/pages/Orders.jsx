@@ -9,11 +9,22 @@ import {
 import { orderService } from '../../services/api';
 
 export default function Orders() {
-  const [orders, setOrders] = useState([]);
+  const getInitialOrders = () => {
+    try {
+      const cached = sessionStorage.getItem('faa_admin_orders_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const [orders, setOrders] = useState(getInitialOrders);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => getInitialOrders().length === 0);
   const [errorMessage, setErrorMessage] = useState('');
 
   const pageSize = 10;
@@ -57,7 +68,11 @@ export default function Orders() {
     try {
       const data = await orderService.getAll({ limit: 100 });
       const list = Array.isArray(data) ? data : data.orders || [];
-      setOrders(list.map(mapBackendOrder));
+      const mapped = list.map(mapBackendOrder);
+      setOrders(mapped);
+      try {
+        sessionStorage.setItem('faa_admin_orders_cache', JSON.stringify(mapped));
+      } catch {}
     } catch (err) {
       console.warn('Orders fetch error:', err);
       setErrorMessage(
@@ -136,8 +151,8 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Error state alert (if any) */}
-      {errorMessage && (
+      {/* Error state alert (genuine failure only) */}
+      {errorMessage && !isLoading && (
         <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between">
           <span>{errorMessage}</span>
           <button
