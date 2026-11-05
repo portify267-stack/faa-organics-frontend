@@ -305,6 +305,9 @@ export default function Products() {
           text: `Product "${norm.name}" created successfully.`,
         });
       }
+      try {
+        localStorage.removeItem('faa_live_products_cache');
+      } catch {}
       setIsModalOpen(false);
       // Immediately trigger fresh sync in background
       fetchData();
@@ -350,6 +353,9 @@ export default function Products() {
         type: 'success',
         text: `Product "${deletingProduct.name}" removed successfully.`,
       });
+      try {
+        localStorage.removeItem('faa_live_products_cache');
+      } catch {}
     } catch (err) {
       const msg =
         err.response?.data?.message ||

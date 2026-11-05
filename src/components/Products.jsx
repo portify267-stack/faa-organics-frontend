@@ -24,9 +24,40 @@ export default function Products() {
     });
   };
 
-  const [productList, setProductList] = useState(() => sortSoapProductsFirst(localProducts));
-  const [categoryTabs, setCategoryTabs] = useState(localCategories);
-  const [isLoading, setIsLoading] = useState(true);
+  // Instant Cache initialization: Read last known live catalog from localStorage to avoid flashing outdated static data
+  const getInitialProducts = () => {
+    try {
+      const cached = localStorage.getItem('faa_live_products_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return sortSoapProductsFirst(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return []; // Empty on cold first visit to display clean skeleton loader while fetching
+  };
+
+  const getInitialCategories = () => {
+    try {
+      const cached = localStorage.getItem('faa_live_categories_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return localCategories;
+  };
+
+  const [productList, setProductList] = useState(getInitialProducts);
+  const [categoryTabs, setCategoryTabs] = useState(getInitialCategories);
+  const [isLoading, setIsLoading] = useState(() => getInitialProducts().length === 0);
 
   // Map Backend Product Model to Customer Storefront Format
   const mapBackendProduct = (p) => {
@@ -125,6 +156,9 @@ export default function Products() {
               })),
             ];
             setCategoryTabs(mappedTabs);
+            try {
+              localStorage.setItem('faa_live_categories_cache', JSON.stringify(mappedTabs));
+            } catch {}
           }
         }
 
@@ -134,8 +168,11 @@ export default function Products() {
             ? prodRes.value
             : prodRes.value?.products || [];
           if (rawProds.length > 0) {
-            const mapped = rawProds.map(mapBackendProduct);
+            const mapped = sortSoapProductsFirst(rawProds.map(mapBackendProduct));
             setProductList(mapped);
+            try {
+              localStorage.setItem('faa_live_products_cache', JSON.stringify(mapped));
+            } catch {}
           }
         }
       } catch (err) {
@@ -220,11 +257,38 @@ export default function Products() {
         </div>
 
         {/* Products Grid */}
-        <div className="products-grid" id="products-list-container">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id || product._id} product={product} />
-          ))}
-        </div>
+        {isLoading && productList.length === 0 ? (
+          <div className="products-grid" id="products-loading-skeleton">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div
+                key={n}
+                className="product-card skeleton-card"
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  opacity: 0.7,
+                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }}
+              >
+                <div style={{ height: '220px', background: '#e2e8f0', borderRadius: '12px', marginBottom: '16px' }} />
+                <div style={{ height: '20px', background: '#e2e8f0', borderRadius: '4px', width: '75%', marginBottom: '10px' }} />
+                <div style={{ height: '14px', background: '#e2e8f0', borderRadius: '4px', width: '45%', marginBottom: '20px' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ height: '24px', background: '#e2e8f0', borderRadius: '4px', width: '30%' }} />
+                  <div style={{ height: '36px', background: '#e2e8f0', borderRadius: '8px', width: '35%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="products-grid" id="products-list-container">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id || product._id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -157,6 +157,10 @@ export default function Categories() {
           text: `Category "${norm.name}" created successfully.`,
         });
       }
+      try {
+        localStorage.removeItem('faa_live_categories_cache');
+        localStorage.removeItem('faa_live_products_cache');
+      } catch {}
       setIsModalOpen(false);
       // Immediately trigger fresh sync in background
       fetchCategories();
@@ -196,6 +200,10 @@ export default function Categories() {
         type: 'success',
         text: `Category "${deletingCategory.name}" deleted successfully.`,
       });
+      try {
+        localStorage.removeItem('faa_live_categories_cache');
+        localStorage.removeItem('faa_live_products_cache');
+      } catch {}
     } catch (err) {
       const msg =
         err.response?.data?.message ||
