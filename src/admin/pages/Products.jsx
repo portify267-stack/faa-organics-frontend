@@ -182,7 +182,16 @@ export default function Products() {
         }
       } else {
         console.warn('Backend products fetch failed, using fallback:', prodRes.reason?.message);
-        setError('Could not connect to backend products API. Showing local data.');
+        if (prodRes.reason?.response?.status === 401) {
+          setError('Admin session has expired. Please log in again to manage products.');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('token');
+          setTimeout(() => {
+            if (typeof window !== 'undefined') window.location.href = '/admin/login';
+          }, 1500);
+        } else {
+          setError('Could not connect to backend products API. Showing local data.');
+        }
         setProducts(initialProducts.map(mapBackendProductToFrontend));
       }
     } catch (err) {

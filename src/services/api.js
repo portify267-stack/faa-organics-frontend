@@ -15,7 +15,7 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor: attach admin JWT token from localStorage if present & prevent stale caching
+// Request interceptor: attach admin JWT token from localStorage if present
 api.interceptors.request.use(
   (config) => {
     try {
@@ -28,13 +28,6 @@ api.interceptors.request.use(
       }
     } catch (e) {
       console.warn('Unable to access localStorage for auth token:', e);
-    }
-
-    // Force non-cached network requests for dynamic data
-    if (config.method === 'get') {
-      config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-      config.headers['Pragma'] = 'no-cache';
-      config.headers['Expires'] = '0';
     }
 
     return config;
@@ -103,12 +96,27 @@ export const categoryService = {
     return res.data?.data?.categories || res.data?.data || res.data || [];
   },
 
-  // Fetch all admin categories
+  // Fetch all admin categories (with graceful fallback to public endpoint)
   getAll: async (params = {}) => {
-    const res = await api.get('/admin/categories', {
-      params: { ...params, _t: Date.now() },
-    });
-    return res.data?.data?.categories || res.data?.data || res.data || [];
+    try {
+      const res = await api.get('/admin/categories', {
+        params: { ...params, _t: Date.now() },
+      });
+      return res.data?.data?.categories || res.data?.data || res.data || [];
+    } catch (err) {
+      // If 401/403 or network error, fallback to public categories to preserve live counts
+      if (!err.response || err.response.status === 401 || err.response.status === 403) {
+        try {
+          const publicRes = await api.get('/categories', {
+            params: { ...params, _t: Date.now() },
+          });
+          return publicRes.data?.data?.categories || publicRes.data?.data || publicRes.data || [];
+        } catch (pubErr) {
+          console.warn('Public category fallback error:', pubErr);
+        }
+      }
+      throw err;
+    }
   },
 
   // Create category
@@ -148,12 +156,27 @@ export const productService = {
     return res.data?.data?.products || res.data?.data || res.data || [];
   },
 
-  // Fetch all admin products (supports limit=100 for catalog view)
+  // Fetch all admin products (supports limit=100 with graceful fallback to public endpoint)
   getAll: async (params = { limit: 100 }) => {
-    const res = await api.get('/admin/products', {
-      params: { limit: 100, ...params, _t: Date.now() },
-    });
-    return res.data?.data?.products || res.data?.data || res.data || [];
+    try {
+      const res = await api.get('/admin/products', {
+        params: { limit: 100, ...params, _t: Date.now() },
+      });
+      return res.data?.data?.products || res.data?.data || res.data || [];
+    } catch (err) {
+      // If 401/403 or network error, fallback to public products to preserve live counts
+      if (!err.response || err.response.status === 401 || err.response.status === 403) {
+        try {
+          const publicRes = await api.get('/products', {
+            params: { limit: 100, ...params, _t: Date.now() },
+          });
+          return publicRes.data?.data?.products || publicRes.data?.data || publicRes.data || [];
+        } catch (pubErr) {
+          console.warn('Public product fallback error:', pubErr);
+        }
+      }
+      throw err;
+    }
   },
 
   // Create product

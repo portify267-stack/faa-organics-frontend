@@ -81,7 +81,16 @@ export default function Categories() {
       }
     } catch (err) {
       console.warn('Backend categories fetch failed, using fallback:', err.message);
-      setError('Could not connect to backend categories API. Showing local data.');
+      if (err.response?.status === 401) {
+        setError('Admin session has expired. Please log in again to manage categories.');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('token');
+        setTimeout(() => {
+          if (typeof window !== 'undefined') window.location.href = '/admin/login';
+        }, 1500);
+      } else {
+        setError('Could not connect to backend categories API. Showing local data.');
+      }
       setCategories(sortCategories(initialCategories.map(normalizeCategory)));
     } finally {
       setLoading(false);

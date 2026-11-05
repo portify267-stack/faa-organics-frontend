@@ -54,7 +54,20 @@ export default function Dashboard() {
       });
 
       if (productsRes.status === 'rejected' || categoriesRes.status === 'rejected') {
-        setError('Using local catalog preview. Backend connection will auto-sync when online.');
+        const prodErr = productsRes.status === 'rejected' ? productsRes.reason : null;
+        const catErr = categoriesRes.status === 'rejected' ? categoriesRes.reason : null;
+        const errObj = prodErr || catErr;
+
+        if (errObj?.response?.status === 401) {
+          setError('Admin session has expired. Please log in again to sync live data.');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('token');
+          setTimeout(() => {
+            if (typeof window !== 'undefined') window.location.href = '/admin/login';
+          }, 1500);
+        } else {
+          setError('Using local catalog preview. Backend connection will auto-sync when online.');
+        }
       }
     } catch (err) {
       console.warn('Dashboard fetch error:', err);
