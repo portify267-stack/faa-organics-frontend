@@ -23,4 +23,15 @@
   }
 }
 
+/* Crisp, razor-sharp rendering for HD product photos on retina and high-DPI screens */
+.product-img,
+.product-image-container img,
+.product-detail-modal img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+
 

@@ -124,7 +124,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
       aria-modal="true"
       aria-labelledby="product-modal-title"
     >
-      <div className="relative w-full max-w-4xl bg-[#FAF8F5] rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col md:flex-row my-auto max-h-[90vh] md:max-h-[85vh] animate-scaleUp">
+      <div className="product-detail-modal relative w-full max-w-4xl bg-[#FAF8F5] rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col md:flex-row my-auto max-h-[90vh] md:max-h-[85vh] animate-scaleUp">
         {/* Close Button */}
         <button
           type="button"
@@ -144,7 +144,9 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
             <img
               src={currentImage}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-contain md:object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="eager"
+              decoding="async"
               onError={(e) => {
                 e.target.onerror = null;
                 if (currentImage && currentImage.startsWith('/uploads/')) {
@@ -190,6 +192,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
                     src={imgUrl}
                     alt={`${product.name} view ${idx + 1}`}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.target.onerror = null;
                       if (imgUrl && imgUrl.startsWith('/uploads/')) {

@@ -22,7 +22,22 @@ export default function ImageUpload({
       return;
     }
 
-    // Read and compress file using HTML5 Canvas to prevent multi-megabyte payloads
+    // If an uploaded image is already under 250 KB, skip re-compressing it and read directly for 100% native HD quality
+    if (file.size <= 250 * 1024) {
+      const directReader = new FileReader();
+      directReader.onload = (e) => {
+        if (e.target && e.target.result) {
+          onChange(e.target.result);
+        }
+      };
+      directReader.onerror = () => {
+        setLocalError('Failed to read image file.');
+      };
+      directReader.readAsDataURL(file);
+      return;
+    }
+
+    // For larger images, resize smoothly to max 1400px with high-quality bicubic smoothing at 90% quality
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target && e.target.result) {
@@ -30,7 +45,7 @@ export default function ImageUpload({
         const img = new Image();
         img.onload = () => {
           try {
-            const maxDimension = 600;
+            const maxDimension = 1400;
             let { width, height } = img;
 
             if (width > maxDimension || height > maxDimension) {
@@ -47,10 +62,23 @@ export default function ImageUpload({
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
+
+            // Explicitly enable high-quality bicubic smoothing
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Compress to optimized WebP (quality: 0.75) for super-fast sync (< 25 KB)
-            const compressed = canvas.toDataURL('image/webp', 0.75);
+            // Export using 'image/webp' (or 'image/jpeg' fallback) at 0.90 (90%) quality for razor-sharp clarity
+            let compressed;
+            try {
+              compressed = canvas.toDataURL('image/webp', 0.90);
+              if (!compressed.startsWith('data:image/webp')) {
+                compressed = canvas.toDataURL('image/jpeg', 0.90);
+              }
+            } catch {
+              compressed = canvas.toDataURL('image/jpeg', 0.90);
+            }
             onChange(compressed);
           } catch (canvasErr) {
             console.warn('Canvas compression fallback to raw image:', canvasErr);

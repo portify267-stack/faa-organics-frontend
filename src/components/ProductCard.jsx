@@ -75,8 +75,9 @@ export default function ProductCard({ product, onSelectProduct }) {
         <img
           src={displayImage}
           alt={product.name}
-          className="product-img transition-transform duration-500 group-hover/img:scale-105"
+          className="product-img object-cover w-full h-full transition-transform duration-500 group-hover/img:scale-105"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.target.onerror = null;
             if (displayImage.startsWith('/uploads/')) {
