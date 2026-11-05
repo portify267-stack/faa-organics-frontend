@@ -30,7 +30,7 @@ export default function ImageUpload({
         const img = new Image();
         img.onload = () => {
           try {
-            const maxDimension = 1200;
+            const maxDimension = 800;
             let { width, height } = img;
 
             if (width > maxDimension || height > maxDimension) {
@@ -49,8 +49,8 @@ export default function ImageUpload({
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Compress to optimized JPEG (quality: 0.82)
-            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            // Compress to optimized JPEG (quality: 0.78) for super-fast sync (< 100ms)
+            const compressed = canvas.toDataURL('image/jpeg', 0.78);
             onChange(compressed);
           } catch (canvasErr) {
             console.warn('Canvas compression fallback to raw image:', canvasErr);

@@ -306,6 +306,8 @@ export default function Products() {
         });
       }
       setIsModalOpen(false);
+      // Immediately trigger fresh sync in background
+      fetchData();
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -357,6 +359,8 @@ export default function Products() {
       console.error('Delete product error:', err);
     } finally {
       setDeletingProduct(null);
+      // Immediately trigger fresh sync in background
+      fetchData();
       setTimeout(() => setActionMessage(null), 6000);
     }
   };

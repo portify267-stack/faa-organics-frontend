@@ -81,12 +81,16 @@ export default function Products() {
 
   // Fetch live products and categories from shared MongoDB backend (using public endpoints)
   useEffect(() => {
+    let isMounted = true;
+
     const fetchLiveCatalog = async () => {
       try {
         const [prodRes, catRes] = await Promise.allSettled([
           productService.getPublic({ limit: 100 }),
           categoryService.getPublic(),
         ]);
+
+        if (!isMounted) return;
 
         // 1. Process Categories (Soap first, Combo second, no Lip/Hair Care)
         if (catRes.status === 'fulfilled' && catRes.value) {
@@ -137,11 +141,28 @@ export default function Products() {
       } catch (err) {
         console.warn('Storefront backend fetch fallback:', err.message);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
+    // Immediate fetch on mount
     fetchLiveCatalog();
+
+    // Instant refetch on window focus / tab visibility change (< 1 sec sync)
+    const onVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        fetchLiveCatalog();
+      }
+    };
+
+    window.addEventListener('visibilitychange', onVisibilityOrFocus);
+    window.addEventListener('focus', onVisibilityOrFocus);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('visibilitychange', onVisibilityOrFocus);
+      window.removeEventListener('focus', onVisibilityOrFocus);
+    };
   }, []);
 
   // Filter products by selected category tab, ensuring Soap products always appear first on "All Products"

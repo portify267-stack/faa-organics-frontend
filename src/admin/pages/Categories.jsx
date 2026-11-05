@@ -158,6 +158,8 @@ export default function Categories() {
         });
       }
       setIsModalOpen(false);
+      // Immediately trigger fresh sync in background
+      fetchCategories();
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -203,6 +205,8 @@ export default function Categories() {
       console.error('Delete category error:', err);
     } finally {
       setDeletingCategory(null);
+      // Immediately trigger fresh sync in background
+      fetchCategories();
       setTimeout(() => setActionMessage(null), 6000);
     }
   };
