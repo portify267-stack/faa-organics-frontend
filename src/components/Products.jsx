@@ -79,13 +79,13 @@ export default function Products() {
     };
   };
 
-  // Fetch live products and categories from shared MongoDB backend
+  // Fetch live products and categories from shared MongoDB backend (using public endpoints)
   useEffect(() => {
     const fetchLiveCatalog = async () => {
       try {
         const [prodRes, catRes] = await Promise.allSettled([
-          productService.getAll({ limit: 100 }),
-          categoryService.getAll(),
+          productService.getPublic({ limit: 100 }),
+          categoryService.getPublic(),
         ]);
 
         // 1. Process Categories (Soap first, Combo second, no Lip/Hair Care)

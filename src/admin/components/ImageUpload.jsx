@@ -22,11 +22,45 @@ export default function ImageUpload({
       return;
     }
 
-    // Convert file to Base64 Data URL for instant, reliable frontend preview and mock state persistence
+    // Read and compress file using HTML5 Canvas to prevent multi-megabyte payloads
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target && e.target.result) {
-        onChange(e.target.result);
+        const rawResult = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDimension = 1200;
+            let { width, height } = img;
+
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to optimized JPEG (quality: 0.82)
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            onChange(compressed);
+          } catch (canvasErr) {
+            console.warn('Canvas compression fallback to raw image:', canvasErr);
+            onChange(rawResult);
+          }
+        };
+        img.onerror = () => {
+          onChange(rawResult);
+        };
+        img.src = rawResult;
       }
     };
     reader.onerror = () => {

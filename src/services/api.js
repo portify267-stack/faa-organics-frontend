@@ -12,10 +12,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 30000,
 });
 
-// Request interceptor: attach admin JWT token from localStorage if present
+// Request interceptor: attach admin JWT token from localStorage if present & prevent stale caching
 api.interceptors.request.use(
   (config) => {
     try {
@@ -29,6 +29,14 @@ api.interceptors.request.use(
     } catch (e) {
       console.warn('Unable to access localStorage for auth token:', e);
     }
+
+    // Force non-cached network requests for dynamic data
+    if (config.method === 'get') {
+      config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      config.headers['Pragma'] = 'no-cache';
+      config.headers['Expires'] = '0';
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -87,9 +95,19 @@ api.interceptors.response.use(
  * Category API Service
  */
 export const categoryService = {
+  // Public categories for customer storefront (never requires admin auth)
+  getPublic: async (params = {}) => {
+    const res = await api.get('/categories', {
+      params: { ...params, _t: Date.now() },
+    });
+    return res.data?.data?.categories || res.data?.data || res.data || [];
+  },
+
   // Fetch all admin categories
   getAll: async (params = {}) => {
-    const res = await api.get('/admin/categories', { params });
+    const res = await api.get('/admin/categories', {
+      params: { ...params, _t: Date.now() },
+    });
     return res.data?.data?.categories || res.data?.data || res.data || [];
   },
 
@@ -122,9 +140,19 @@ export const categoryService = {
  * Product API Service
  */
 export const productService = {
+  // Public active products for customer storefront (never requires admin auth)
+  getPublic: async (params = { limit: 100 }) => {
+    const res = await api.get('/products', {
+      params: { limit: 100, ...params, _t: Date.now() },
+    });
+    return res.data?.data?.products || res.data?.data || res.data || [];
+  },
+
   // Fetch all admin products (supports limit=100 for catalog view)
   getAll: async (params = { limit: 100 }) => {
-    const res = await api.get('/admin/products', { params });
+    const res = await api.get('/admin/products', {
+      params: { limit: 100, ...params, _t: Date.now() },
+    });
     return res.data?.data?.products || res.data?.data || res.data || [];
   },
 
