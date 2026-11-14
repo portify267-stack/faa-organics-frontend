@@ -1,9 +1,9 @@
 /* Import the original Faa Organics stylesheet preserving 100% of the design */
 @import '../css/style.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 /* Global Typography Scale (+2px Scale: 18px base scale) */
 :root, html {
