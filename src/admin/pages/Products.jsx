@@ -346,6 +346,8 @@ export default function Products() {
       }
       try {
         localStorage.removeItem('faa_live_products_cache');
+        localStorage.setItem('faa_catalog_sync_timestamp', String(Date.now()));
+        window.dispatchEvent(new Event('faa_catalog_updated'));
       } catch {}
       setIsModalOpen(false);
       // Immediately trigger fresh sync in background
@@ -398,6 +400,8 @@ export default function Products() {
       });
       try {
         localStorage.removeItem('faa_live_products_cache');
+        localStorage.setItem('faa_catalog_sync_timestamp', String(Date.now()));
+        window.dispatchEvent(new Event('faa_catalog_updated'));
       } catch {}
     } catch (err) {
       const msg =

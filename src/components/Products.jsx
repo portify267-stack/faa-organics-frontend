@@ -191,20 +191,24 @@ export default function Products() {
     // Immediate fetch on mount
     fetchLiveCatalog();
 
-    // Instant refetch on window focus / tab visibility change (< 1 sec sync)
-    const onVisibilityOrFocus = () => {
+    // Instant real-time refetch on window focus, tab visibility change, cross-tab storage event, and catalog mutations (< 500ms sync)
+    const onSyncTrigger = () => {
       if (document.visibilityState === 'visible') {
         fetchLiveCatalog();
       }
     };
 
-    window.addEventListener('visibilitychange', onVisibilityOrFocus);
-    window.addEventListener('focus', onVisibilityOrFocus);
+    window.addEventListener('visibilitychange', onSyncTrigger);
+    window.addEventListener('focus', onSyncTrigger);
+    window.addEventListener('storage', onSyncTrigger);
+    window.addEventListener('faa_catalog_updated', onSyncTrigger);
 
     return () => {
       isMounted = false;
-      window.removeEventListener('visibilitychange', onVisibilityOrFocus);
-      window.removeEventListener('focus', onVisibilityOrFocus);
+      window.removeEventListener('visibilitychange', onSyncTrigger);
+      window.removeEventListener('focus', onSyncTrigger);
+      window.removeEventListener('storage', onSyncTrigger);
+      window.removeEventListener('faa_catalog_updated', onSyncTrigger);
     };
   }, []);
 

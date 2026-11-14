@@ -90,17 +90,19 @@ api.interceptors.response.use(
 export const categoryService = {
   // Public categories for customer storefront (never requires admin auth)
   getPublic: async (params = {}) => {
+    const timestamp = Date.now();
     const res = await api.get('/categories', {
-      params: { ...params, _t: Date.now() },
+      params: { ...params, t: timestamp, _t: timestamp },
     });
     return res.data?.data?.categories || res.data?.data || res.data || [];
   },
 
   // Fetch all admin categories (with graceful fallback to public endpoint)
   getAll: async (params = {}) => {
+    const timestamp = Date.now();
     try {
       const res = await api.get('/admin/categories', {
-        params: { ...params, _t: Date.now() },
+        params: { ...params, t: timestamp, _t: timestamp },
       });
       return res.data?.data?.categories || res.data?.data || res.data || [];
     } catch (err) {
@@ -108,7 +110,7 @@ export const categoryService = {
       if (!err.response || err.response.status === 401 || err.response.status === 403) {
         try {
           const publicRes = await api.get('/categories', {
-            params: { ...params, _t: Date.now() },
+            params: { ...params, t: timestamp, _t: timestamp },
           });
           return publicRes.data?.data?.categories || publicRes.data?.data || publicRes.data || [];
         } catch (pubErr) {
@@ -150,17 +152,19 @@ export const categoryService = {
 export const productService = {
   // Public active products for customer storefront (never requires admin auth)
   getPublic: async (params = { limit: 100 }) => {
+    const timestamp = Date.now();
     const res = await api.get('/products', {
-      params: { limit: 100, ...params, _t: Date.now() },
+      params: { limit: 100, ...params, t: timestamp, _t: timestamp },
     });
     return res.data?.data?.products || res.data?.data || res.data || [];
   },
 
   // Fetch all admin products (supports limit=100 with graceful fallback to public endpoint)
   getAll: async (params = { limit: 100 }) => {
+    const timestamp = Date.now();
     try {
       const res = await api.get('/admin/products', {
-        params: { limit: 100, ...params, _t: Date.now() },
+        params: { limit: 100, ...params, t: timestamp, _t: timestamp },
       });
       return res.data?.data?.products || res.data?.data || res.data || [];
     } catch (err) {
@@ -168,7 +172,7 @@ export const productService = {
       if (!err.response || err.response.status === 401 || err.response.status === 403) {
         try {
           const publicRes = await api.get('/products', {
-            params: { limit: 100, ...params, _t: Date.now() },
+            params: { limit: 100, ...params, t: timestamp, _t: timestamp },
           });
           return publicRes.data?.data?.products || publicRes.data?.data || publicRes.data || [];
         } catch (pubErr) {
@@ -265,9 +269,10 @@ export const salesService = {
  */
 export const dashboardService = {
   getStats: async () => {
+    const timestamp = Date.now();
     try {
       const res = await api.get('/admin/dashboard/stats', {
-        params: { _t: Date.now() },
+        params: { t: timestamp, _t: timestamp },
       });
       return res.data?.data || res.data;
     } catch {
