@@ -173,7 +173,7 @@ export default function Products() {
           const rawProds = Array.isArray(prodRes.value)
             ? prodRes.value
             : prodRes.value?.products || [];
-          if (rawProds.length > 0) {
+          if (Array.isArray(rawProds)) {
             const mapped = sortSoapProductsFirst(rawProds.map(mapBackendProduct));
             setProductList(mapped);
             try {
@@ -198,6 +198,13 @@ export default function Products() {
       }
     };
 
+    // Continuous background sync (every 4s) so customers see updates automatically without reloading
+    const syncInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchLiveCatalog();
+      }
+    }, 4000);
+
     window.addEventListener('visibilitychange', onSyncTrigger);
     window.addEventListener('focus', onSyncTrigger);
     window.addEventListener('storage', onSyncTrigger);
@@ -205,6 +212,7 @@ export default function Products() {
 
     return () => {
       isMounted = false;
+      clearInterval(syncInterval);
       window.removeEventListener('visibilitychange', onSyncTrigger);
       window.removeEventListener('focus', onSyncTrigger);
       window.removeEventListener('storage', onSyncTrigger);

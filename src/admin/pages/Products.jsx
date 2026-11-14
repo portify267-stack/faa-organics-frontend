@@ -350,8 +350,10 @@ export default function Products() {
         window.dispatchEvent(new Event('faa_catalog_updated'));
       } catch {}
       setIsModalOpen(false);
-      // Immediately trigger fresh sync in background
-      fetchData();
+      // Trigger fresh sync in background after write propagation
+      setTimeout(() => {
+        fetchData();
+      }, 400);
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -412,8 +414,10 @@ export default function Products() {
       console.error('Delete product error:', err);
     } finally {
       setDeletingProduct(null);
-      // Immediately trigger fresh sync in background
-      fetchData();
+      // Trigger fresh sync in background after write propagation
+      setTimeout(() => {
+        fetchData();
+      }, 400);
       setTimeout(() => setActionMessage(null), 6000);
     }
   };

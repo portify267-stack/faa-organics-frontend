@@ -30,6 +30,15 @@ api.interceptors.request.use(
       console.warn('Unable to access localStorage for auth token:', e);
     }
 
+    // Append unique cache-busting query params to all GET requests to prevent any browser/proxy cache reuse
+    if (config.method === 'get') {
+      config.params = {
+        ...config.params,
+        _t: Date.now(),
+        _r: Math.floor(Math.random() * 1000000),
+      };
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
