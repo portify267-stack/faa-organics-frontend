@@ -241,7 +241,7 @@ export default function Orders() {
                     <td className="py-4 px-4">
                       <div className="font-medium text-stone-900 text-sm">{order.customerName}</div>
                       <div className="text-xs text-stone-500">{order.phone}</div>
-                      <div className="text-[11px] text-stone-400 truncate max-w-xs">{order.email}</div>
+                      <div className="text-[13px] text-stone-400 truncate max-w-xs">{order.email}</div>
                     </td>
                     <td className="py-4 px-4 text-xs text-stone-600 whitespace-nowrap">
                       {order.orderDate}

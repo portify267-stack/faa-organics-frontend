@@ -49,7 +49,7 @@ export default function AdminSidebar({
               <h2 className="font-serif font-bold text-base tracking-wider text-[#FAF6F0] whitespace-nowrap">
                 FAA ORGANICS
               </h2>
-              <p className="text-[10px] uppercase tracking-widest text-[#a8b79a]">Admin Portal</p>
+              <p className="text-[12px] uppercase tracking-widest text-[#a8b79a]">Admin Portal</p>
             </div>
           )}
         </div>
@@ -66,7 +66,7 @@ export default function AdminSidebar({
 
       {/* Navigation Links - 4 items only */}
       <div className="flex-1 py-6 px-3 space-y-1.5 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#8a9b7c]/80">
+        <div className="px-3 pb-2 text-[12px] font-semibold uppercase tracking-wider text-[#8a9b7c]/80">
           {!isCollapsed ? 'Main Menu' : '•••'}
         </div>
         {navItems.map((item) => (

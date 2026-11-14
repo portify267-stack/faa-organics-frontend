@@ -91,7 +91,7 @@ export default function ProductCard({ product, onSelectProduct }) {
 
         {/* Quick View Hover Cue */}
         <div className="absolute inset-0 bg-stone-900/15 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-          <span className="bg-white/95 text-stone-800 text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-md border border-stone-200 flex items-center gap-1.5 transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
+          <span className="bg-white/95 text-stone-800 text-[13px] font-semibold px-3 py-1.5 rounded-full shadow-md border border-stone-200 flex items-center gap-1.5 transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
             <span>View Details</span>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

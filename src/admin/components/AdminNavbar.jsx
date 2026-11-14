@@ -47,7 +47,7 @@ export default function AdminNavbar({
             />
             <div className="hidden sm:block leading-tight">
               <h1 className="text-sm font-semibold text-stone-800">FAA ORGANICS</h1>
-              <p className="text-[11px] text-stone-500">Store Management Console</p>
+              <p className="text-[13px] text-stone-500">Store Management Console</p>
             </div>
           </div>
         </div>

@@ -61,7 +61,7 @@
 
 html {
     scroll-behavior: smooth;
-    font-size: 17px;
+    font-size: 18px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -346,7 +346,7 @@ h3 {
     .brand-logo-text {
         top: 8%;
         right: 4%;
-        font-size: 16px;
+        font-size: 18px;
     }
 }
 
@@ -355,7 +355,7 @@ h3 {
     .brand-logo-text {
         top: 5%;
         right: 3%;
-        font-size: 14px;
+        font-size: 16px;
     }
 }
 
@@ -433,15 +433,16 @@ h3 {
 
 .cart-badge {
     position: absolute;
-    top: -2px;
-    right: -2px;
+    top: -3px;
+    right: -3px;
     background-color: var(--color-highlight);
     color: var(--color-white);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;

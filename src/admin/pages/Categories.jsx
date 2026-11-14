@@ -397,7 +397,7 @@ export default function Categories() {
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
                     <StatusBadge type="order" status={cat.status || 'Active'} />
-                    <span className="text-[11px] font-mono text-stone-400">
+                    <span className="text-[13px] font-mono text-stone-400">
                       /{cat.slug || cat._id || cat.id}
                     </span>
                   </div>

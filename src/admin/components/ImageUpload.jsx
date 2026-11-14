@@ -176,7 +176,7 @@ export default function ImageUpload({
               </svg>
               <span>Image loaded successfully</span>
             </div>
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[13px] text-stone-500">
               Works across mobile gallery/camera and desktop files.
             </p>
 
@@ -227,7 +227,7 @@ export default function ImageUpload({
           <p className="text-xs sm:text-sm font-semibold text-stone-800">
             Click to upload or drag &amp; drop image
           </p>
-          <p className="text-[11px] text-stone-500 mt-1">
+          <p className="text-[13px] text-stone-500 mt-1">
             Supports JPG, JPEG, PNG, or WEBP from Photos, Camera, or Desktop files
           </p>
 

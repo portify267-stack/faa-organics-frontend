@@ -619,7 +619,7 @@ export default function Products() {
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-stone-900 max-w-xs">{product.name}</div>
                         {product.subtitle && (
-                          <div className="text-[11px] text-stone-500 font-serif italic line-clamp-1">
+                          <div className="text-[13px] text-stone-500 font-serif italic line-clamp-1">
                             {product.subtitle}
                           </div>
                         )}
@@ -720,7 +720,7 @@ export default function Products() {
                 </div>
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-semibold text-[#8a9b7c] tracking-wider">
+                    <span className="text-[12px] uppercase font-semibold text-[#8a9b7c] tracking-wider">
                       {getCategoryName(product.category, product.categoryName)}
                     </span>
                     <h4 className="font-serif font-bold text-base text-[#2e2a26] mt-0.5 line-clamp-1">
@@ -744,7 +744,7 @@ export default function Products() {
                     <div className="flex items-center justify-between gap-1.5 pt-1">
                       <button
                         onClick={() => setViewingIngredientsProduct(product)}
-                        className="flex-1 py-1.5 px-2 rounded-lg border border-stone-300 text-[11px] font-medium text-stone-700 hover:bg-[#FAF6F0] inline-flex items-center justify-center gap-1"
+                        className="flex-1 py-1.5 px-2 rounded-lg border border-stone-300 text-[13px] font-medium text-stone-700 hover:bg-[#FAF6F0] inline-flex items-center justify-center gap-1"
                       >
                         <IconEye className="w-3 h-3 text-[#3a4d39]" />
                         <span>Ingredients</span>

@@ -50,7 +50,7 @@ export default class AdminErrorBoundary extends React.Component {
             </p>
 
             {this.state.error && (
-              <div className="text-left bg-stone-50 rounded-xl p-3 border border-stone-200 mb-6 max-h-36 overflow-auto font-mono text-[11px] text-stone-700">
+              <div className="text-left bg-stone-50 rounded-xl p-3 border border-stone-200 mb-6 max-h-36 overflow-auto font-mono text-[13px] text-stone-700">
                 {this.state.error.toString()}
               </div>
             )}

@@ -232,7 +232,7 @@ export default function ProductModal({
               className="w-full px-3.5 py-2 text-sm rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#3a4d39] bg-white"
             />
             {errors.stock && <p className="text-xs text-rose-600 mt-1">{errors.stock}</p>}
-            <p className="text-[11px] text-stone-500 mt-1">
+            <p className="text-[13px] text-stone-500 mt-1">
               Enter 0 for Out of Stock; greater than 0 for In Stock.
             </p>
           </div>
@@ -248,7 +248,7 @@ export default function ProductModal({
                 ({Number(formData.stock) > 0 ? `${formData.stock} units` : '0 units'})
               </span>
             </div>
-            <p className="text-[11px] text-stone-500 mt-1">
+            <p className="text-[13px] text-stone-500 mt-1">
               Automatically calculated based on stock quantity.
             </p>
           </div>
@@ -290,7 +290,7 @@ export default function ProductModal({
               <h4 className="text-sm font-serif font-bold text-[#2e2a26]">
                 View Ingredients &amp; Details
               </h4>
-              <p className="text-[11px] text-stone-500">
+              <p className="text-[13px] text-stone-500">
                 Additional botanical specifications (Subtitle, Key Ingredients, All Benefits, How to Use, Suitability)
               </p>
             </div>

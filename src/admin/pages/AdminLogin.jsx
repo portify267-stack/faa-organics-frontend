@@ -193,7 +193,7 @@ export default function AdminLogin() {
 
           {/* Quick Demo Helper Hint */}
           <div className="mt-6 pt-4 border-t border-stone-100 text-center">
-            <p className="text-[11px] text-stone-400">
+            <p className="text-[13px] text-stone-400">
               Preview Mode: Pre-filled credentials can be used directly to sign in.
             </p>
           </div>

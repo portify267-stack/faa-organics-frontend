@@ -5,16 +5,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Typography Scale (+1 Step: 17px base scale) */
+/* Global Typography Scale (+2px Scale: 18px base scale) */
 :root, html {
-  font-size: 17px;
+  font-size: 18px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 380px) {
   :root, html {
-    font-size: 16px; /* Smooth, readable proportion on mobile devices */
+    font-size: 17px; /* Smooth scale on ultra-narrow screens preventing edge overflow */
   }
 }
 

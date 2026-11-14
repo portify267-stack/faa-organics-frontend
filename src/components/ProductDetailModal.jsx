@@ -159,11 +159,11 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
 
             {/* Badges Over Image */}
             <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#3a4d39]/90 text-white shadow-sm backdrop-blur-xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold bg-[#3a4d39]/90 text-white shadow-sm backdrop-blur-xs">
                 🌿 Handcrafted
               </span>
               {isOutOfStock && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-600/90 text-white shadow-sm">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-rose-600/90 text-white shadow-sm">
                   Out of Stock
                 </span>
               )}
@@ -209,7 +209,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
           )}
 
           {/* Boutique Quality Assurance */}
-          <div className="w-full mt-4 pt-3 border-t border-stone-200/70 grid grid-cols-3 gap-2 text-center text-[10px] sm:text-xs text-stone-600">
+          <div className="w-full mt-4 pt-3 border-t border-stone-200/70 grid grid-cols-3 gap-2 text-center text-[12px] sm:text-xs text-stone-600">
             <div className="flex flex-col items-center">
               <span className="text-base sm:text-lg mb-0.5">🌱</span>
               <span className="font-medium text-stone-700">100% Organic</span>
@@ -232,7 +232,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
             {/* Header: Category & Title */}
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EBE3D5] text-[#3a4d39] uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full text-[13px] font-semibold bg-[#EBE3D5] text-[#3a4d39] uppercase tracking-wider">
                   {categoryLabel}
                 </span>
                 <span className="text-xs text-amber-600 font-medium">★ 4.9 (Artisanal Verified)</span>
@@ -267,7 +267,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
               <span className="text-xs sm:text-sm font-medium text-stone-500 border-l border-stone-200 pl-3">
                 Net Wt: <strong className="text-stone-700">{displayWeight}</strong>
               </span>
-              <span className="ml-auto text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span className="ml-auto text-[13px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                 Fresh Batch
               </span>
             </div>
@@ -389,7 +389,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
                       <ol className="space-y-1.5">
                         {howToUseList.map((step, idx) => (
                           <li key={idx} className="flex items-start gap-2">
-                            <span className="w-5 h-5 rounded-full bg-[#3a4d39] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                            <span className="w-5 h-5 rounded-full bg-[#3a4d39] text-white flex items-center justify-center text-[12px] shrink-0 font-bold">
                               {idx + 1}
                             </span>
                             <span className="pt-0.5">{step}</span>
