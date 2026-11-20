@@ -42,6 +42,10 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
   const normalizeUrl = (u) => {
     if (!u || typeof u !== 'string') return '/uploads/img11.jpeg';
     if (u.startsWith('assets/')) return `/${u}`;
+    if (u.startsWith('/api')) {
+      const backendOrigin = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://faa-organics-backend-2uei.onrender.com/api/v1' : 'http://localhost:5000/api/v1')).replace(/\/api.*$/, '');
+      return `${backendOrigin}${u}`;
+    }
     return u;
   };
 

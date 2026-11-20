@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { products as localProducts, CATEGORIES as localCategories } from '../data/products';
-import { productService, categoryService } from '../services/api';
+import { productService, categoryService, API_BASE_URL } from '../services/api';
 import ProductCard from './ProductCard';
 import ProductDetailModal from './ProductDetailModal';
 
@@ -63,18 +63,35 @@ export default function Products() {
 
   // Map Backend Product Model to Customer Storefront Format
   const mapBackendProduct = (p) => {
-    const primaryUrl =
+    let primaryUrl =
       (Array.isArray(p.images) &&
         p.images.length > 0 &&
         (p.images.find((img) => img.isPrimary)?.url || p.images[0]?.url)) ||
       (typeof p.image === 'string' && p.image ? p.image : '') ||
       '/uploads/img11.jpeg';
 
+    // If image URL is a relative API path (/api/...), prefix backend base URL
+    if (primaryUrl.startsWith('/api')) {
+      const backendOrigin = (API_BASE_URL || '').replace(/\/api.*$/, '');
+      primaryUrl = `${backendOrigin}${primaryUrl}`;
+    }
+
     const catSlug = typeof p.category === 'object' && p.category?.slug ? p.category.slug : '';
     const catId = typeof p.category === 'object' && p.category?._id ? p.category._id : p.category || '';
     const catName = typeof p.category === 'object' && p.category?.name ? p.category.name : '';
 
     let categoryKey = catSlug || catId || 'soap';
+
+    const normalizedImages = Array.isArray(p.images) && p.images.length > 0
+      ? p.images.map((img) => {
+          let u = typeof img === 'string' ? img : img.url;
+          if (u && u.startsWith('/api')) {
+            const backendOrigin = (API_BASE_URL || '').replace(/\/api.*$/, '');
+            u = `${backendOrigin}${u}`;
+          }
+          return typeof img === 'string' ? { url: u, alt: p.name, isPrimary: true } : { ...img, url: u };
+        })
+      : [{ url: primaryUrl, alt: p.name, isPrimary: true }];
 
     return {
       id: p._id || p.id,
@@ -88,7 +105,7 @@ export default function Products() {
       categoryId: catId,
       categoryName: catName,
       image: primaryUrl,
-      images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [{ url: primaryUrl, alt: p.name, isPrimary: true }],
+      images: normalizedImages,
       discountPrice: p.discountPrice,
       stockQuantity: p.stockQuantity,
       availabilityStatus: p.availabilityStatus || (p.stockQuantity === 0 ? 'out_of_stock' : 'in_stock'),
@@ -191,28 +208,65 @@ export default function Products() {
     // Immediate fetch on mount
     fetchLiveCatalog();
 
-    // Instant real-time refetch on window focus, tab visibility change, cross-tab storage event, and catalog mutations (< 500ms sync)
+    // 1. Server-Sent Events (SSE) for instant cross-device catalog updates (<100ms sync without polling)
+    let eventSource = null;
+    try {
+      const sseBase = (API_BASE_URL || '').replace(/\/api\/v1\/?$/, '/api/v1');
+      eventSource = new EventSource(`${sseBase}/products/sync-stream`);
+      eventSource.addEventListener('change', () => {
+        if (document.visibilityState === 'visible') {
+          fetchLiveCatalog();
+        }
+      });
+      eventSource.onerror = () => {
+        // Browser natively retries SSE with exponential backoff
+      };
+    } catch (e) {
+      console.warn('SSE subscription notice:', e);
+    }
+
+    // 2. Native BroadcastChannel for instantaneous (<5ms) cross-tab synchronization
+    let broadcastChannel = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        broadcastChannel = new BroadcastChannel('faa_catalog_channel');
+        broadcastChannel.onmessage = (event) => {
+          if (event.data?.type === 'catalog_updated') {
+            fetchLiveCatalog();
+          }
+        };
+      }
+    } catch {}
+
+    // 3. User interaction & window events: instant revalidation on tab focus / unlock
     const onSyncTrigger = () => {
       if (document.visibilityState === 'visible') {
         fetchLiveCatalog();
       }
     };
 
-    // Continuous background sync (every 4s) so customers see updates automatically without reloading
-    const syncInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchLiveCatalog();
-      }
-    }, 4000);
-
     window.addEventListener('visibilitychange', onSyncTrigger);
     window.addEventListener('focus', onSyncTrigger);
     window.addEventListener('storage', onSyncTrigger);
     window.addEventListener('faa_catalog_updated', onSyncTrigger);
 
+    // 4. Gentle fallback heartbeat (every 60s) active only when tab is visible
+    // Uses HTTP conditional ETag (If-None-Match) so 304 Not Modified transfers 0 body bytes
+    const heartbeatInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchLiveCatalog();
+      }
+    }, 60000);
+
     return () => {
       isMounted = false;
-      clearInterval(syncInterval);
+      if (eventSource) {
+        eventSource.close();
+      }
+      if (broadcastChannel) {
+        broadcastChannel.close();
+      }
+      clearInterval(heartbeatInterval);
       window.removeEventListener('visibilitychange', onSyncTrigger);
       window.removeEventListener('focus', onSyncTrigger);
       window.removeEventListener('storage', onSyncTrigger);

@@ -12,7 +12,7 @@ import {
   IconProducts
 } from '../components/AdminIcons';
 import { initialProducts, initialCategories, getStockStatus } from '../data/mockData';
-import { productService, categoryService } from '../../services/api';
+import { productService, categoryService, broadcastCatalogUpdate } from '../../services/api';
 
 export default function Products() {
   const getInitialProducts = () => {
@@ -344,16 +344,8 @@ export default function Products() {
           text: `Product "${norm.name}" created successfully.`,
         });
       }
-      try {
-        localStorage.removeItem('faa_live_products_cache');
-        localStorage.setItem('faa_catalog_sync_timestamp', String(Date.now()));
-        window.dispatchEvent(new Event('faa_catalog_updated'));
-      } catch {}
+      broadcastCatalogUpdate({ entity: 'product', action: editingProduct ? 'update' : 'create' });
       setIsModalOpen(false);
-      // Trigger fresh sync in background after write propagation
-      setTimeout(() => {
-        fetchData();
-      }, 400);
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -400,11 +392,7 @@ export default function Products() {
         type: 'success',
         text: `Product "${deletingProduct.name}" removed successfully.`,
       });
-      try {
-        localStorage.removeItem('faa_live_products_cache');
-        localStorage.setItem('faa_catalog_sync_timestamp', String(Date.now()));
-        window.dispatchEvent(new Event('faa_catalog_updated'));
-      } catch {}
+      broadcastCatalogUpdate({ entity: 'product', action: 'delete', id: targetId });
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -414,10 +402,6 @@ export default function Products() {
       console.error('Delete product error:', err);
     } finally {
       setDeletingProduct(null);
-      // Trigger fresh sync in background after write propagation
-      setTimeout(() => {
-        fetchData();
-      }, 400);
       setTimeout(() => setActionMessage(null), 6000);
     }
   };

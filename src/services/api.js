@@ -22,6 +22,25 @@ const api = axios.create({
   timeout: 30000,
 });
 
+// In-flight request deduplication cache to eliminate duplicate simultaneous network roundtrips
+const inFlightGetRequests = new Map();
+
+export const deduplicatedGet = (url, config = {}) => {
+  const paramKey = config.params ? JSON.stringify(config.params) : '';
+  const key = `GET:${url}:${paramKey}`;
+
+  if (inFlightGetRequests.has(key)) {
+    return inFlightGetRequests.get(key);
+  }
+
+  const promise = api.get(url, config).finally(() => {
+    inFlightGetRequests.delete(key);
+  });
+
+  inFlightGetRequests.set(key, promise);
+  return promise;
+};
+
 // Request interceptor: attach admin JWT token from localStorage if present
 api.interceptors.request.use(
   (config) => {
@@ -35,15 +54,6 @@ api.interceptors.request.use(
       }
     } catch (e) {
       console.warn('Unable to access localStorage for auth token:', e);
-    }
-
-    // Append unique cache-busting query params to all GET requests to prevent any browser/proxy cache reuse
-    if (config.method === 'get') {
-      config.params = {
-        ...config.params,
-        _t: Date.now(),
-        _r: Math.floor(Math.random() * 1000000),
-      };
     }
 
     return config;
@@ -106,28 +116,20 @@ api.interceptors.response.use(
 export const categoryService = {
   // Public categories for customer storefront (never requires admin auth)
   getPublic: async (params = {}) => {
-    const timestamp = Date.now();
-    const res = await api.get('/categories', {
-      params: { ...params, t: timestamp, _t: timestamp },
-    });
+    const res = await deduplicatedGet('/categories', { params });
     return res.data?.data?.categories || res.data?.data || res.data || [];
   },
 
   // Fetch all admin categories (with graceful fallback to public endpoint)
   getAll: async (params = {}) => {
-    const timestamp = Date.now();
     try {
-      const res = await api.get('/admin/categories', {
-        params: { ...params, t: timestamp, _t: timestamp },
-      });
+      const res = await deduplicatedGet('/admin/categories', { params });
       return res.data?.data?.categories || res.data?.data || res.data || [];
     } catch (err) {
       // If 401/403 or network error, fallback to public categories to preserve live counts
       if (!err.response || err.response.status === 401 || err.response.status === 403) {
         try {
-          const publicRes = await api.get('/categories', {
-            params: { ...params, t: timestamp, _t: timestamp },
-          });
+          const publicRes = await deduplicatedGet('/categories', { params });
           return publicRes.data?.data?.categories || publicRes.data?.data || publicRes.data || [];
         } catch (pubErr) {
           console.warn('Public category fallback error:', pubErr);
@@ -140,24 +142,28 @@ export const categoryService = {
   // Create category
   create: async (categoryData) => {
     const res = await api.post('/admin/categories', categoryData);
+    broadcastCatalogUpdate({ entity: 'category', action: 'create' });
     return res.data?.data || res.data;
   },
 
   // Update category
   update: async (id, categoryData) => {
     const res = await api.put(`/admin/categories/${id}`, categoryData);
+    broadcastCatalogUpdate({ entity: 'category', action: 'update', id });
     return res.data?.data || res.data;
   },
 
   // Delete category
   delete: async (id) => {
     const res = await api.delete(`/admin/categories/${id}`);
+    broadcastCatalogUpdate({ entity: 'category', action: 'delete', id });
     return res.data?.data || res.data;
   },
 
   // Update status (active/inactive)
   updateStatus: async (id, status) => {
     const res = await api.patch(`/admin/categories/${id}/status`, { status });
+    broadcastCatalogUpdate({ entity: 'category', action: 'status', id, status });
     return res.data?.data || res.data;
   },
 };
@@ -168,27 +174,25 @@ export const categoryService = {
 export const productService = {
   // Public active products for customer storefront (never requires admin auth)
   getPublic: async (params = { limit: 100 }) => {
-    const timestamp = Date.now();
-    const res = await api.get('/products', {
-      params: { limit: 100, ...params, t: timestamp, _t: timestamp },
+    const res = await deduplicatedGet('/products', {
+      params: { limit: 100, ...params },
     });
     return res.data?.data?.products || res.data?.data || res.data || [];
   },
 
   // Fetch all admin products (supports limit=100 with graceful fallback to public endpoint)
   getAll: async (params = { limit: 100 }) => {
-    const timestamp = Date.now();
     try {
-      const res = await api.get('/admin/products', {
-        params: { limit: 100, ...params, t: timestamp, _t: timestamp },
+      const res = await deduplicatedGet('/admin/products', {
+        params: { limit: 100, ...params },
       });
       return res.data?.data?.products || res.data?.data || res.data || [];
     } catch (err) {
       // If 401/403 or network error, fallback to public products to preserve live counts
       if (!err.response || err.response.status === 401 || err.response.status === 403) {
         try {
-          const publicRes = await api.get('/products', {
-            params: { limit: 100, ...params, t: timestamp, _t: timestamp },
+          const publicRes = await deduplicatedGet('/products', {
+            params: { limit: 100, ...params },
           });
           return publicRes.data?.data?.products || publicRes.data?.data || publicRes.data || [];
         } catch (pubErr) {
@@ -202,24 +206,28 @@ export const productService = {
   // Create product
   create: async (productData) => {
     const res = await api.post('/admin/products', productData);
+    broadcastCatalogUpdate({ entity: 'product', action: 'create' });
     return res.data?.data || res.data;
   },
 
   // Update product
   update: async (id, productData) => {
     const res = await api.put(`/admin/products/${id}`, productData);
+    broadcastCatalogUpdate({ entity: 'product', action: 'update', id });
     return res.data?.data || res.data;
   },
 
   // Delete product
   delete: async (id) => {
     const res = await api.delete(`/admin/products/${id}`);
+    broadcastCatalogUpdate({ entity: 'product', action: 'delete', id });
     return res.data?.data || res.data;
   },
 
   // Update product status
   updateStatus: async (id, status) => {
     const res = await api.patch(`/admin/products/${id}/status`, { status });
+    broadcastCatalogUpdate({ entity: 'product', action: 'status', id, status });
     return res.data?.data || res.data;
   },
 };
@@ -285,11 +293,8 @@ export const salesService = {
  */
 export const dashboardService = {
   getStats: async () => {
-    const timestamp = Date.now();
     try {
-      const res = await api.get('/admin/dashboard/stats', {
-        params: { t: timestamp, _t: timestamp },
-      });
+      const res = await deduplicatedGet('/admin/dashboard/stats');
       return res.data?.data || res.data;
     } catch {
       return null;
@@ -297,4 +302,22 @@ export const dashboardService = {
   },
 };
 
+/**
+ * Real-time cross-tab & cross-window synchronization helper
+ */
+export const broadcastCatalogUpdate = (data = {}) => {
+  try {
+    localStorage.removeItem('faa_live_products_cache');
+    localStorage.removeItem('faa_live_categories_cache');
+    localStorage.setItem('faa_catalog_sync_timestamp', String(Date.now()));
+    window.dispatchEvent(new Event('faa_catalog_updated'));
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('faa_catalog_channel');
+      channel.postMessage({ type: 'catalog_updated', ...data, timestamp: Date.now() });
+      channel.close();
+    }
+  } catch {}
+};
+
+export { API_BASE_URL, FALLBACK_API_BASE };
 export default api;
