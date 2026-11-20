@@ -1,11 +1,18 @@
 import axios from 'axios';
 
-// Vite environment variable with fallback to local backend server
+// Vite environment variable with fallback to new Render production backend (or localhost in dev)
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD
+    ? 'https://faa-organics-backend-2uei.onrender.com/api/v1'
+    : 'http://localhost:5000/api/v1');
 
 // Direct /api fallback base derived dynamically from API_BASE_URL (never hardcodes localhost in production)
-const FALLBACK_API_BASE = API_BASE_URL.replace(/\/v1\/?$/, '') || 'http://localhost:5000/api';
+const FALLBACK_API_BASE =
+  API_BASE_URL.replace(/\/v1\/?$/, '') ||
+  (import.meta.env.PROD
+    ? 'https://faa-organics-backend-2uei.onrender.com/api'
+    : 'http://localhost:5000/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
